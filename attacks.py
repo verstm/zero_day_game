@@ -3,8 +3,9 @@ import time
 import math
 from Harm_events import *
 class fireball:
-    def __init__(self, cls, sc):
+    def __init__(self, cls, sc, allnt):
         self.screen = sc
+        self.allnt = allnt
         self.balldir = "Assets\Sprites\Attacks\Fireball"
         self.ballanim_dir = "Assets\Sprites\Attacks\Fireball\Animation"
         self.ballsprite = None
@@ -73,7 +74,7 @@ class fireball:
             self.ballgroup.draw(self.screen)
         elif self.state == 2:
             if self.flg2:
-                self.e = explosion(200, 5, self.targetx, self.targety, self.screen)
+                self.e = explosion(200, 5, self.targetx, self.targety, self.screen, self.allnt)
                 self.flg2 = 0
             if self.e.living:
                 self.e.update()

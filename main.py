@@ -18,6 +18,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 r1=[pygame.K_DOWN,pygame.K_LEFT,pygame.K_UP,pygame.K_RIGHT,pygame.K_n,pygame.K_m]
 r2=[pygame.K_s,pygame.K_a,pygame.K_w,pygame.K_d,pygame.K_e,pygame.K_q]
 r3=[pygame.K_g,pygame.K_f,pygame.K_t,pygame.K_h,pygame.K_j,pygame.K_k]
+allentityes = pygame.sprite.Group()
 print(WIDTH,HEIGHT)
 class game:
     def __init__(self):
@@ -33,7 +34,7 @@ class game:
             self.m.update()
         elif self.page == 99:
             if self.debugflag:
-                self.p_i = PlayerInterface(self.d,WIDTH, HEIGHT, screen)
+                self.p_i = PlayerInterface(self.d,WIDTH, HEIGHT, screen, allentityes)
                 print("Fight Debugging has been started!")
                 self.debugflag = 0
             self.p_i.update()
@@ -106,50 +107,65 @@ class menu:
             print('menu cleaned')
 class Debug_Player:
     def __init__(self):
-        self.spells = ['Fireball']
+        self.spells = ['Fireball', 'Fireball']
         self.remote = r2
         self.attacks = []
         self.way = 0
         self.armx = 12
         self.army = -5
         self.heady = 22
+        self.parts = 6
         self.legx = 6
         self.legy = 17
         self.bodyy = 7
         self.x = 100
         self.y = 100
-        self.speeed = 2
+        self.speeed = 2.5
+        self.health = 1000
 
         self.char_group = pygame.sprite.Group()
         self.sprite = pygame.sprite.Sprite()
+        self.sprite.health = self.health
         self.sprite.image = pygame.surface.Surface((32,60)).convert()
         self.sprite.image.fill((255, 255, 255))
         self.sprite.rect = self.sprite.image.get_rect()
         self.sprite.rect.x, self.sprite.rect.y = self.x,self.y
+        self.sprite.cls = self
 
         self.chest = pygame.sprite.Sprite()
+        self.chest.health = 100
         self.chestsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/chest.png").convert()
         self.chestsprite2 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/chest_front.png").convert()
         self.left_arm = pygame.sprite.Sprite()
+        self.left_arm.health = 100
         self.left_armsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/left_arm.png").convert()
         self.right_arm = pygame.sprite.Sprite()
+        self.right_arm.health = 100
         self.right_armsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_arm.png").convert()
         self.right_armsprite2 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_arm_rightfront.png").convert()
         self.head = pygame.sprite.Sprite()
+        self.head.health = 100
         self.headsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/head.png").convert()
         self.headsprite2 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/head_rightfront.png").convert()
         self.left_leg = pygame.sprite.Sprite()
+        self.left_leg.health = 100
         self.left_legsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/left_leg.png").convert()
         self.left_legsprite2 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/left_leg_rightfront.png").convert()
         self.right_leg = pygame.sprite.Sprite()
+        self.right_leg.health = 100
         self.right_legsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_leg.png").convert()
         self.right_legsprite2 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_leg_rightfront.png").convert()
 
         self.holdparts = []
         self.flg1 = 1
+        allentityes.add(self.sprite)
         for i in self.char_group:
             self.holdparts.append(i)
     def update(self):
+        for i in self.char_group:
+            if i.health <= 0:
+                self.parts -= 1
+                i.health = 1
         for i in self.attacks:
             i.update()
         self.char_group.update()
@@ -395,7 +411,19 @@ class Debug_Player:
             self.char_group.add(self.sprite, self.chest, self.right_arm, self.left_arm, self.head, self.left_leg,self.right_leg)
     def on_click(self, button):
         pass
-
+    def getdamage(self, damage, type, *args):
+        damage = damage
+        y = 0
+        for i in self.char_group:
+            if i != self.sprite:
+                y += 1
+                print(len(self.char_group))
+                x = random.randint(2,10)
+                if y != self.parts:
+                    i.health -= damage // x
+                    damage -= damage // x
+                else:
+                    i.health -= damage
 g = game()
 clock = pygame.time.Clock()
 while True:
