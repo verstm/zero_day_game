@@ -3,8 +3,9 @@ import time
 import math
 from Harm_events import *
 class fireball:
-    def __init__(self, cls, sc, allnt):
+    def __init__(self, cls, sc, allnt, map):
         self.screen = sc
+        self.map = map
         self.allnt = allnt
         self.balldir = "Assets\Sprites\Attacks\Fireball"
         self.ballanim_dir = "Assets\Sprites\Attacks\Fireball\Animation"
@@ -74,7 +75,7 @@ class fireball:
             self.ballgroup.draw(self.screen)
         elif self.state == 2:
             if self.flg2:
-                self.e = explosion(200, 5, self.targetx, self.targety, self.screen, self.allnt)
+                self.e = explosion(200, 5, self.targetx, self.targety, self.screen, self.allnt, self.map)
                 self.flg2 = 0
             if self.e.living:
                 self.e.update()
@@ -83,3 +84,124 @@ class fireball:
                 self.state += 1
         else:
             self.living = 0
+class dash:
+    def __init__(self,game, plr):
+        self.maingame = game
+        self.player = plr
+        self.dashanimation = None
+        self.alive = 1
+        self.state = 0
+        self.drt = None
+        self.player.attacks.append(self)
+        keystate = pygame.key.get_pressed()
+        ways = []
+        if keystate[self.player.remote[1]]:
+            ways.append(1)
+        if keystate[self.player.remote[3]]:
+            ways.append(3)
+        if keystate[self.player.remote[2]]:
+            ways.append(2)
+        if keystate[self.player.remote[0]]:
+            ways.append(0)
+        if not (1 in ways and 3 in ways) and not (0 in ways and 2 in ways):
+            if 1 in ways:
+                if 2 in ways:
+                    self.drt = 3
+                elif 0 in ways:
+                    self.drt = 1
+                else:
+                    self.drt = 2
+            elif 3 in ways:
+                if 2 in ways:
+                    self.drt = 5
+                elif 0 in ways:
+                    self.drt = 7
+                else:
+                    self.drt = 6
+            elif 2 in ways:
+                self.drt = 4
+            elif 0 in ways:
+                self.drt = 0
+            else:
+                pass
+        else:
+            pass
+        self.g = 50
+        self.g2 = 0
+        self.g3 = 0
+    def update(self):
+        if self.drt == 0:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(0, self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(0, self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 2:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(-self.g2, 0)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(-self.g2, 0)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 4:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(0, -self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(0, -self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 6:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(self.g2, 0)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(self.g2, 0)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 1:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(-self.g2, self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(-self.g2, self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 3:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(-self.g2, -self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(-self.g2, -self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 5:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(self.g2, -self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(self.g2, -self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.drt == 7:
+            if self.g3 <= self.g // 2:
+                self.player.spritemove(self.g2, self.g2)
+                self.g3 += self.g2
+                self.g2 += 1
+            else:
+                self.player.spritemove(self.g2, self.g2)
+                self.g3 += self.g2
+                self.g2 -= 1
+        if self.g3 >= self.g:
+            self.player.attacks.remove(self)
+            del self.player.d

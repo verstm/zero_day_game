@@ -2,10 +2,11 @@ import pygame
 from PIL import Image
 from attacks import *
 class PlayerInterface:
-    def __init__(self, playercls, w, h, sc, allent):
+    def __init__(self, playercls, w, h, sc, allent, map):
         self.screen = sc
         self.width = w
         self.allent = allent
+        self.map = map
         self.doll_group = pygame.sprite.Group()
         self.height = h
         self.player = playercls
@@ -78,7 +79,7 @@ class PlayerInterface:
                 for event in pygame.event.get():
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if event.button == 1:
-                            self.att = fireball(self.player, self.screen, self.allent)
+                            self.att = fireball(self.player, self.screen, self.allent, self.map)
                             self.player.attacks.append(self.att)
     def characterdoll(self):
         self.chest = pygame.sprite.Sprite()
@@ -173,5 +174,82 @@ class PlayerInterface:
             i.image = img
         self.doll_group.update()
         self.doll_group.draw(self.screen)
+    def itemsinterface(self):
+        pass
+    def partpurpose(self):
+        pass
+    def partdoll(self):
+        self.prtsgroup = pygame.sprite.Group()
+        self.chest = pygame.sprite.Sprite()
+        self.chestsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/chest.png").convert()
+        self.left_arm = pygame.sprite.Sprite()
+        self.left_armsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/left_arm.png").convert()
+        self.right_arm = pygame.sprite.Sprite()
+        self.right_armsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_arm.png").convert()
+        self.head = pygame.sprite.Sprite()
+        self.headsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/head.png").convert()
+        self.left_leg = pygame.sprite.Sprite()
+        self.left_legsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/left_leg.png").convert()
+        self.right_leg = pygame.sprite.Sprite()
+        self.right_legsprite1 = pygame.image.load("Assets/Sprites/Character_parts/Body_parts/right_leg.png").convert()
+        self.chest.image = self.chestsprite1
+        self.chest.image.set_colorkey((255, 255, 255))
+        self.chest.rect = self.chest.image.get_rect()
+        self.chest.image = pygame.transform.scale(self.chest.image,
+                                                  (self.chest.rect.width * 2, self.chest.rect.height * 2))
+        self.chest.rect = self.chest.image.get_rect()
+        self.chest.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2)
+        self.chest.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2) - self.bodyy
+        self.chest.health = self.player.chest.health
+
+        self.left_arm.image = self.left_armsprite1
+        self.left_arm.image.set_colorkey((255, 255, 255))
+        self.left_arm.rect = self.left_arm.image.get_rect()
+        self.left_arm.image = pygame.transform.scale(self.left_arm.image,
+                                                     (self.left_arm.rect.width * 2, self.left_arm.rect.height * 2))
+        self.left_arm.rect = self.left_arm.image.get_rect()
+        self.left_arm.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2 + self.armx)
+        self.left_arm.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2 + self.army)
+        self.left_arm.health = self.player.left_arm.health
+
+        self.right_arm.image = self.right_armsprite1
+        self.right_arm.image.set_colorkey((255, 255, 255))
+        self.right_arm.rect = self.right_arm.image.get_rect()
+        self.right_arm.image = pygame.transform.scale(self.right_arm.image, (
+            self.right_arm.rect.width * 2, self.right_arm.rect.height * 2))
+        self.right_arm.rect = self.right_arm.image.get_rect()
+        self.right_arm.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2 - self.armx)
+        self.right_arm.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2 + self.army)
+        self.right_arm.health = self.player.right_arm.health
+
+        self.head.image = self.headsprite1
+        self.head.image.set_colorkey((255, 255, 255))
+        self.head.rect = self.head.image.get_rect()
+        self.head.image = pygame.transform.scale(self.head.image,
+                                                 (self.head.rect.width * 2, self.head.rect.height * 2))
+        self.head.rect = self.head.image.get_rect()
+        self.head.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2)
+        self.head.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2 - self.heady)
+        self.head.health = self.player.head.health
+
+        self.left_leg.image = self.left_legsprite1
+        self.left_leg.image.set_colorkey((255, 255, 255))
+        self.left_leg.rect = self.left_leg.image.get_rect()
+        self.left_leg.image = pygame.transform.scale(self.left_leg.image,
+                                                     (self.left_leg.rect.width * 2, self.left_leg.rect.height * 2))
+        self.left_leg.rect = self.left_leg.image.get_rect()
+        self.left_leg.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2 + self.legx)
+        self.left_leg.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2 + self.legy)
+        self.left_leg.health = self.player.left_leg.health
+
+        self.right_leg.image = self.right_legsprite1
+        self.right_leg.image.set_colorkey((255, 255, 255))
+        self.right_leg.rect = self.right_leg.image.get_rect()
+        self.right_leg.image = pygame.transform.scale(self.right_leg.image, (
+            self.right_leg.rect.width * 2, self.right_leg.rect.height * 2))
+        self.right_leg.rect = self.right_leg.image.get_rect()
+        self.right_leg.rect.centerx = self.dollcords[0] + (self.player.sprite.rect.width // 2 - self.legx)
+        self.right_leg.rect.centery = self.dollcords[1] + (self.player.sprite.rect.height // 2 + self.legy)
+        self.right_leg.health = self.player.right_leg.health
 
 

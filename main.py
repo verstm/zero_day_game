@@ -34,9 +34,11 @@ class game:
             self.m.update()
         elif self.page == 99:
             if self.debugflag:
-                self.p_i = PlayerInterface(self.d,WIDTH, HEIGHT, screen, allentityes)
+                self.mp1 = map(self.d)
+                self.p_i = PlayerInterface(self.d,WIDTH, HEIGHT, screen, allentityes, self.mp1)
                 print("Fight Debugging has been started!")
                 self.debugflag = 0
+            self.mp1.update()
             self.p_i.update()
             self.d.update()
 
@@ -46,19 +48,40 @@ class game:
     def pagetransition(self, page):
         self.page = page
 class map:
-    def __init__(self):
+    def __init__(self, player):
+        self.player = player
+        self.playerx = 0
+        self.playery = 0
         self.mapgroup = pygame.sprite.Group()
         self.map = pygame.sprite.Sprite()
         self.map.image = pygame.image.load("Assets/Sprites/Map_parts/background.png")
+        self.map.image = pygame.transform.scale(self.map.image,(self.map.image.get_width() * 3,self.map.image.get_height() * 3))
         self.map.rect = self.map.image.get_rect()
         self.x = 0
         self.y = 0
-    def update(self):
+        self.x2 = self.player.sprite.rect.x
+        self.y2 = self.player.sprite.rect.y
         self.map.rect.x = self.x
         self.map.rect.y = self.y
+        self.mapgroup.add(self.map)
+    def update(self):
+        '''self.x = self.player.sprite.rect.x
+        self.y = self.player.sprite.rect.y'''
+        self.mapgroup.update()
+        self.mapgroup.draw(screen)
     def mapmoving(self,x,y):
-        self.x += x
-        self.y += y
+        if (self.playerx + x >= 0 and self.playerx + self.player.sprite.rect.width + x <= self.map.rect.width) and \
+                (self.playery + y >= 0 and self.playery + self.player.sprite.rect.height + y <= self.map.rect.height):
+            self.x -= x
+            self.y -= y
+            self.playerx += x
+            self.playery += y
+            self.map.rect.x = self.x
+            self.map.rect.y = self.y
+
+        else:
+            self.player.sprite.rect.x += x
+            self.player.sprite.rect.y += y
 class menu:
     def __init__(self):
         self.background = pygame.sprite.Sprite()
@@ -109,7 +132,9 @@ class Debug_Player:
     def __init__(self):
         self.spells = ['Fireball', 'Fireball']
         self.remote = r2
+        self.dashkd = 3
         self.attacks = []
+        self.dashtime = time.time()
         self.way = 0
         self.armx = 12
         self.army = -5
@@ -118,8 +143,8 @@ class Debug_Player:
         self.legx = 6
         self.legy = 17
         self.bodyy = 7
-        self.x = 100
-        self.y = 100
+        self.x = WIDTH // 2
+        self.y = HEIGHT // 2
         self.speeed = 2.5
         self.health = 1000
 
@@ -162,6 +187,7 @@ class Debug_Player:
         for i in self.char_group:
             self.holdparts.append(i)
     def update(self):
+        self.moving = 0
         for i in self.char_group:
             if i.health <= 0:
                 self.parts -= 1
@@ -172,28 +198,35 @@ class Debug_Player:
         self.char_group.draw(screen)
         keystate = pygame.key.get_pressed()
         if keystate[self.remote[1]]:
-            self.sprite.rect.x -= self.speeed
+            g.mp1.mapmoving(-self.speeed, 0)
             self.way = 1
             self.moving = 1
         if keystate[self.remote[3]]:
-            self.sprite.rect.x += self.speeed
+            g.mp1.mapmoving(self.speeed, 0)
             self.way = 3
             self.moving = 1
 
         if keystate[self.remote[2]]:
-            self.sprite.rect.y -= self.speeed
+            g.mp1.mapmoving(0, -self.speeed)
             self.way = 2
             self.moving = 1
 
         if keystate[self.remote[0]]:
-            self.sprite.rect.y += self.speeed
+            g.mp1.mapmoving(0, self.speeed)
             self.way = 0
             self.moving = 1
+        if keystate[pygame.K_LALT]:
+            if self.dashtime+self.dashkd < time.time():
+                self.d = dash(g,self)
+                self.dashtime = time.time()
+
+            print("dash")
 
 
 
         self.partsholding()
     def partsholding(self):
+        self.t = 2.3
         if self.way == 0:
 
             self.chest.image = self.chestsprite1
@@ -257,7 +290,7 @@ class Debug_Player:
             self.chest.image.set_colorkey((255, 255, 255))
             self.chest.rect = self.chest.image.get_rect()
             self.chest.image = pygame.transform.scale(self.chest.image,
-                                                      (self.chest.rect.width * 2, self.chest.rect.height * 2))
+                                                      (self.chest.rect.width * self.t, self.chest.rect.height * self.t))
             self.chest.rect = self.chest.image.get_rect()
             self.chest.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.chest.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2)
@@ -266,7 +299,7 @@ class Debug_Player:
             self.right_arm.image.set_colorkey((0,0,0))
             self.right_arm.rect = self.right_arm.image.get_rect()
             self.right_arm.image = pygame.transform.scale(self.right_arm.image, (
-                self.right_arm.rect.width * 2, self.right_arm.rect.height * 2))
+                self.right_arm.rect.width * self.t, self.right_arm.rect.height * self.t))
             self.right_arm.rect = self.right_arm.image.get_rect()
             self.right_arm.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.right_arm.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2 + self.army)
@@ -275,7 +308,7 @@ class Debug_Player:
             self.head.image.set_colorkey((255, 255, 255))
             self.head.rect = self.head.image.get_rect()
             self.head.image = pygame.transform.scale(self.head.image,
-                                                     (self.head.rect.width * 2, self.head.rect.height * 2))
+                                                     (self.head.rect.width * self.t, self.head.rect.height * self.t))
             self.head.rect = self.head.image.get_rect()
             self.head.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.head.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2 - self.heady)+4
@@ -284,7 +317,7 @@ class Debug_Player:
             self.left_leg.image.set_colorkey((255, 255, 255))
             self.left_leg.rect = self.left_leg.image.get_rect()
             self.left_leg.image = pygame.transform.scale(self.left_leg.image,
-                                                         (self.left_leg.rect.width * 2, self.left_leg.rect.height * 2))
+                                                         (self.left_leg.rect.width * self.t, self.left_leg.rect.height * self.t))
             self.left_leg.rect = self.left_leg.image.get_rect()
             self.left_leg.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.left_leg.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2 + self.legy)
@@ -293,7 +326,7 @@ class Debug_Player:
             self.right_leg.image.set_colorkey((255, 255, 255))
             self.right_leg.rect = self.right_leg.image.get_rect()
             self.right_leg.image = pygame.transform.scale(self.right_leg.image, (
-                self.right_leg.rect.width * 2, self.right_leg.rect.height * 2))
+                self.right_leg.rect.width * self.t, self.right_leg.rect.height * self.t))
             self.right_leg.rect = self.right_leg.image.get_rect()
             self.right_leg.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.right_leg.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2 + self.legy)
@@ -305,7 +338,7 @@ class Debug_Player:
             self.chest.image.set_colorkey((255, 255, 255))
             self.chest.rect = self.chest.image.get_rect()
             self.chest.image = pygame.transform.scale(self.chest.image,
-                                                      (self.chest.rect.width * 2, self.chest.rect.height * 2))
+                                                      (self.chest.rect.width * self.t, self.chest.rect.height * self.t))
             self.chest.rect = self.chest.image.get_rect()
             self.chest.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
             self.chest.rect.centery = self.sprite.rect.y + (self.sprite.rect.height // 2)
@@ -314,7 +347,7 @@ class Debug_Player:
             self.left_arm.image.set_colorkey((0, 0, 0))
             self.left_arm.rect = self.left_arm.image.get_rect()
             self.left_arm.image = pygame.transform.scale(self.left_arm.image, (
-                self.left_arm.rect.width * 2, self.left_arm.rect.height * 2))
+                self.left_arm.rect.width * self.t, self.left_arm.rect.height * self.t))
             self.left_arm.image = pygame.transform.flip(self.left_arm.image, True, False)
             self.left_arm.rect = self.left_arm.image.get_rect()
             self.left_arm.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
@@ -324,7 +357,7 @@ class Debug_Player:
             self.head.image.set_colorkey((255, 255, 255))
             self.head.rect = self.head.image.get_rect()
             self.head.image = pygame.transform.scale(self.head.image,
-                                                     (self.head.rect.width * 2, self.head.rect.height * 2))
+                                                     (self.head.rect.width * self.t, self.head.rect.height * self.t))
             self.head.image = pygame.transform.flip(self.head.image, True, False)
             self.head.rect = self.head.image.get_rect()
             self.head.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
@@ -334,7 +367,7 @@ class Debug_Player:
             self.left_leg.image.set_colorkey((255, 255, 255))
             self.left_leg.rect = self.left_leg.image.get_rect()
             self.left_leg.image = pygame.transform.scale(self.left_leg.image,
-                                                         (self.left_leg.rect.width * 2, self.left_leg.rect.height * 2))
+                                                         (self.left_leg.rect.width * self.t, self.left_leg.rect.height * self.t))
             self.left_leg.image = pygame.transform.flip(self.left_leg.image, True, False)
 
             self.left_leg.rect = self.left_leg.image.get_rect()
@@ -345,7 +378,7 @@ class Debug_Player:
             self.right_leg.image.set_colorkey((255, 255, 255))
             self.right_leg.rect = self.right_leg.image.get_rect()
             self.right_leg.image = pygame.transform.scale(self.right_leg.image, (
-                self.right_leg.rect.width * 2, self.right_leg.rect.height * 2))
+                self.right_leg.rect.width * self.t, self.right_leg.rect.height * self.t))
             self.right_leg.image = pygame.transform.flip(self.right_leg.image, True, False)
             self.right_leg.rect = self.right_leg.image.get_rect()
             self.right_leg.rect.centerx = self.sprite.rect.x + (self.sprite.rect.width // 2)
@@ -424,6 +457,27 @@ class Debug_Player:
                     damage -= damage // x
                 else:
                     i.health -= damage
+    def spritemove(self, x,y):
+        g.mp1.mapmoving(x,y)
+class chat:
+    def __init__(self, x, y):
+        pass
+class itemstech:
+    def __init__(self):
+        self.itemsgroup = pygame.sprite.Group()
+        self.allitems = []
+        self.itemsinvis = []
+    def update(self):
+        for i in range(len(self.allitems)):
+            if self.allitems[i][1] >= -10:
+                print('xd')
+        self.itemsgroup.empty()
+        for i in range(len(self.itemsinvis)):
+            self.itemsgroup.add(self.itemsinvis[i])
+        self.itemsgroup.update()
+        self.itemsgroup.draw(screen)
+    def itemspawn(self, item, x, y, *args):
+        self.allitems.append([item,x,y])
 g = game()
 clock = pygame.time.Clock()
 while True:
