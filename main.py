@@ -50,8 +50,7 @@ class game:
 class map:
     def __init__(self, player):
         self.player = player
-        self.playerx = 0
-        self.playery = 0
+
         self.mapgroup = pygame.sprite.Group()
         self.map = pygame.sprite.Sprite()
         self.map.image = pygame.image.load("Assets/Sprites/Map_parts/background.png")
@@ -59,29 +58,68 @@ class map:
         self.map.rect = self.map.image.get_rect()
         self.x = 0
         self.y = 0
+        self.side1 = 0
+        self.side2 = 0
+        self.side3 = 0
+        self.side4 = 0
+        self.playerx = self.player.sprite.rect.x - self.map.rect.x
+        self.playery = self.player.sprite.rect.y - self.map.rect.x
+        self.mapzonex = 0
+        self.mapzoney = 0
+
         self.x2 = self.player.sprite.rect.x
         self.y2 = self.player.sprite.rect.y
+        self.map.rect = self.map.image.get_rect()
         self.map.rect.x = self.x
         self.map.rect.y = self.y
         self.mapgroup.add(self.map)
     def update(self):
         '''self.x = self.player.sprite.rect.x
-        self.y = self.player.sprite.rect.y'''
+        self.y = self.player.sprite.rect.y
+        (self.mapzonex + x >= 0 and self.mapzonex + self.player.sprite.rect.width + x <= self.map.rect.width) and \
+                (self.mapzoney + y >= 0 and self.mapzoney + self.player.sprite.rect.height + y <= self.map.rect.height)'''
         self.mapgroup.update()
         self.mapgroup.draw(screen)
     def mapmoving(self,x,y):
-        if (self.playerx + x >= 0 and self.playerx + self.player.sprite.rect.width + x <= self.map.rect.width) and \
-                (self.playery + y >= 0 and self.playery + self.player.sprite.rect.height + y <= self.map.rect.height):
-            self.x -= x
-            self.y -= y
-            self.playerx += x
-            self.playery += y
-            self.map.rect.x = self.x
-            self.map.rect.y = self.y
-
+        # print(self.mapzonex + x, self.map.rect.width - WIDTH, self.mapzoney + y, self.map.rect.height  - HEIGHT)
+        if self.mapzonex + x <= 0:
+            self.side2 = 1
         else:
+            self.side2 = 0
+        if self.mapzonex + x >= self.map.rect.width - WIDTH:
+            self.side4 = 1
+        else:
+            self.side4 = 0
+        if self.mapzoney + y <= 0:
+            self.side3 = 1
+        else:
+            self.side3 = 0
+        if self.mapzoney + y >= self.map.rect.height - HEIGHT:
+            self.side1 = 1
+        else:
+            self.side1 = 0
+        if not (self.side2 or self.side4):
+            self.x -= x
+            self.playerx += x
+            self.mapzonex += x
+            self.map.rect.x = self.x
+        if not (self.side1 or self.side3):
+            self.y -= y
+            self.playery += y
+            self.mapzoney += y
+            self.map.rect.y = self.y
+        print(self.side1, self.side2, self.side3, self.side4)
+
+        if self.side4 or self.side2:
+            print('x')
             self.player.sprite.rect.x += x
+            self.playerx += x
+            self.mapzonex += x
+        if self.side3 or self.side1:
             self.player.sprite.rect.y += y
+            self.playery += y
+            self.mapzoney += y
+            print('y')
 class menu:
     def __init__(self):
         self.background = pygame.sprite.Sprite()
@@ -145,7 +183,7 @@ class Debug_Player:
         self.bodyy = 7
         self.x = WIDTH // 2
         self.y = HEIGHT // 2
-        self.speeed = 2.5
+        self.speeed = 3
         self.health = 1000
 
         self.char_group = pygame.sprite.Group()
