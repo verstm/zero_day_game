@@ -7,6 +7,8 @@ import time
 import math
 from attacks import *
 import pygame_textinput as pgtxt
+from items import *
+
 debug = False
 pygame.init()
 dspl = pygame.display.Info()
@@ -30,6 +32,7 @@ class game:
         self.d = Debug_Player()
         self.p_i = None
         self.debugflag = 1
+
     def pagemanage(self):
         if self.page == 0:
             self.page = 1
@@ -39,10 +42,13 @@ class game:
             if self.debugflag:
                 self.admin = adminpanel(self.d)
                 self.mp1 = map(self.d)
+                self.itm = itemstech()
+                self.itm.itemspawn(dagger_1(100, 100, g.mp1), 100, 100)
                 self.p_i = PlayerInterface(self.d, WIDTH, HEIGHT, screen, allentityes, self.mp1)
                 print("Fight Debugging has been started!")
                 self.debugflag = 0
             self.mp1.update()
+            self.itm.update()
             self.p_i.update()
             self.d.update()
             self.admin.update()
@@ -518,6 +524,7 @@ class chat:
     def __init__(self, x, y):
         pass
 
+
 class itemstech:
     def __init__(self):
         self.itemsgroup = pygame.sprite.Group()
@@ -530,22 +537,26 @@ class itemstech:
             if (self.allitems[i][1] >= g.mp1.playerx - WIDTH // 2 and self.allitems[i][1] <= g.mp1.playerx + WIDTH // 2) \
                     and self.allitems[i][2] >= g.mp1.playery - HEIGHT // 2 and self.allitems[i][
                 2] <= g.mp1.playery + HEIGHT // 2:
-                self.itemsinvis.append(self.allitems[i])
+                if self.allitems[i][0] not in self.itemsinvis:
+                    self.itemsinvis.append(self.allitems[i][0])
         for i in range(len(self.itemsinvis)):
-            if not (self.allitems[i][1] >= g.mp1.playerx - WIDTH // 2 and self.allitems[i][
-                1] <= g.mp1.playerx + WIDTH // 2 and self.allitems[i][2] >= g.mp1.playery - HEIGHT // 2 and
-                    self.allitems[i][2] <= g.mp1.playery + HEIGHT // 2):
+            if not (self.itemsinvis[i].x >= g.mp1.playerx - WIDTH // 2 and self.itemsinvis[i].x
+                    <= g.mp1.playerx + WIDTH // 2 and self.itemsinvis[i].y >= g.mp1.playery - HEIGHT // 2 and
+                    self.itemsinvis[i].y <= g.mp1.playery + HEIGHT // 2):
                 remq.append(i)
-        for i in remq:
-            self.itemsinvis.pop(i)
+        for i in range(len(remq)):
+            self.itemsinvis.pop(remq[i]-i)
         self.itemsgroup.empty()
+        for i in self.allitems:
+            i[0].update()
         for i in range(len(self.itemsinvis)):
-            self.itemsgroup.add(self.itemsinvis[i])
+            self.itemsgroup.add(self.itemsinvis[i].sprite)
         self.itemsgroup.update()
         self.itemsgroup.draw(screen)
 
     def itemspawn(self, item, x, y):
         self.allitems.append([item, x, y])
+
 
 class adminpanel:
     def __init__(self, player):
@@ -555,6 +566,7 @@ class adminpanel:
         self.lastacttime = 0
         font = pygame.font.SysFont("Oswald", 20)
         self.txt = pgtxt.TextInputVisualizer(font_object=font)
+
     def update(self):
         keystate = pygame.key.get_pressed()
         if keystate[pygame.K_BACKQUOTE] and time.time() - self.lastacttime >= 1:
@@ -571,6 +583,8 @@ class adminpanel:
                 self.txt.value = ''
                 if self.command.startswith("spawn_item"):
                     a = self.command.split()
+                    item = eval(a[1])
+                    g.itm.itemspawn(item, int(a[2]), int(a[3]))
 
             pygame.key.set_repeat(200, 25)
             events = pygame.event.get()
