@@ -31,4 +31,4 @@ class dagger_1:
         n = pg.math.Vector2(self.player.sprite.rect.x, self.player.sprite.rect.y) - self.sprite.rect.center
         d = abs(n[0]) + abs(n[1])
         print(d)
-
+# xd
